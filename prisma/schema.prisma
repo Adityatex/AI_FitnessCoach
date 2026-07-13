@@ -1,0 +1,76 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  profile      Profile?
+  weeklyPlans  WeeklyPlan[]
+  dailyCheckins DailyCheckin[]
+  createdAt    DateTime       @default(now())
+}
+
+model Profile {
+  id                     String    @id
+  user                   User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  primaryGoal            String    // 'muscle_gain' | 'fat_loss' | 'general_fitness' | 'endurance'
+  targetTimeframeWeeks   Int
+  experienceLevel        String    // 'beginner' | 'intermediate' | 'advanced'
+  age                    Int
+  sex                    String
+  heightCm               Float
+  weightKg               Float
+  bodyFatPct             Float?
+  activityLevel          String
+  trainingLocation       String    // 'home' | 'gym' | 'both'
+  equipment              String    // stored as JSON string (e.g. ['barbell', 'dumbbells'])
+  daysPerWeek            Int
+  sessionLengthMin       Int
+  dietaryRestrictions    String    // stored as JSON string
+  allergies              String    // stored as JSON string
+  mealsPerDay            Int
+  cookingTimeBudgetMin   Int
+  currentInjuries        String    // stored as JSON string
+  pastInjuries           String    // stored as JSON string
+  medicalConditions      String    // stored as JSON string
+  doctorClearance        Boolean
+  createdAt              DateTime  @default(now())
+}
+
+model WeeklyPlan {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekNumber             Int
+  workoutPlan            String    // JSON string
+  mealPlan               String    // JSON string
+  classification         String?   // bad_day_session | life_disruption | under_recovery | true_plateau_localized | true_plateau_systemic | injury_signal
+  claudeReasoning        String?   // the user_message or explanation Gemini gave
+  createdAt              DateTime  @default(now())
+}
+
+model DailyCheckin {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date                   String    // YYYY-MM-DD
+  sessionCompleted       Boolean
+  exercisesLogged        String    // JSON string: [{name, target, actual_sets: [{reps, weight_kg, rpe}]}]
+  mealsLogged            Int
+  mealsPlanned           Int
+  estKcal                Float
+  targetKcal             Float
+  sleepHours             Float
+  soreness1to10          Int
+  stress1to10            Int
+  painFlag               String?   // JSON or text
+  notes                  String?
+  createdAt              DateTime  @default(now())
+}
